@@ -26,7 +26,21 @@ you realize that the chance of red or black are both slightly less than 1/2. The
 Let's make a quick sampling model for this simple version of roulette. You are going to bet a dollar each time you play and always bet on black. Make a box model for this process using the `sample` function. Write a function `get_outcome` that takes as an argument the number of times you play $N$ and returns your earnings $S_N$.
 
 ```{r}
-##Your code here
+roullete<-rep(c("black","red","green"),times=c(18,18,2))
+get_outcome<-function(n){
+  spots<-sample(roullete,n,replace=TRUE)
+  N=1
+  for (i in 1:length(spots)){
+  if (spots[i]=="black"){
+   N=N+1
+  }
+  else {
+   N=N-1
+  }
+  }
+  return(N)
+}
+get_outcome(10)
 ```
 
 ## Problem 1B
@@ -34,7 +48,26 @@ Let's make a quick sampling model for this simple version of roulette. You are g
 Use Monte Carlo simulation to study the distribution of total earnings $S_N$ for $N=10,25,100,1000$. That is, study the distribution of earnings for different number of plays. What are the distributions of these two random variables? How do the expected values and standard errors change with $N$? Then do the same thing for the average winnings $S_N/N$. What result that you learned in class predicts this?
 
 ```{r}
-##Your code here
+n<-c(10,25,100,1000)
+winning<-function(n){
+  replicate(10000, get_outcome(n))
+} 
+s_n<-sapply(n,winning)
+S_N<-data.frame(s_n)
+hist(S_N$X1)
+hist(S_N$X2)
+hist(S_N$X3)
+hist(S_N$X4)
+
+average <-function(n){
+  replicate(10000, get_outcome(n)/n)
+} 
+s_nn<-sapply(n,average)
+S_NN<-data.frame(s_nn)
+hist(S_NN$X1)
+hist(S_NN$X2)
+hist(S_NN$X3)
+hist(S_NN$X4)
 ```
 
 Your answer here.
@@ -51,7 +84,9 @@ Your answer here.
 Use CLT to approximate the probability that the casino loses money when you play 25 times. Then use a Monte Carlo simulation to confirm.
 
 ```{r}
-##Your code here
+play25<-replicate(10000, get_outcome(25))
+tab <- table(play25>0)
+prop.table(tab)
 ```
 
 
@@ -61,7 +96,16 @@ Use CLT to approximate the probability that the casino loses money when you play
 In general, what is the probability that the casino loses money as a function of $N$? Make a plot for values ranging from 25 to 1,000. Why does the casino give you free drinks if you keep playing?
 
 ```{r}
-##Your code here
+casinoloss<-function(n){
+  rep<-replicate(10000, get_outcome(n))
+  x<-as.numeric(rep>0)
+  mean(x)
+} 
+
+casinolossp<-sapply(n,casinoloss)
+library("ggplot2")
+qplot(x=n,y=casinolossp,geom="point")
+
 ```
 
 Your answer here. 
@@ -75,7 +119,15 @@ You run a bank that has a history of identifying potential homeowners that can b
 Your bank gives out 1,000 loans this year. Create a sampling model and use the function `sample` to simulate the number of foreclosure in a year with the information that 2% of customers default. Also suppose your bank loses $120,000 on each foreclosure. Run the simulation for one year and report your loss.
 
 ```{r}
-##your code here
+default<-rep(c("no","yes"),times=c(98,2))
+loss<-function(n){
+  foreclosure<-sample(default,n,replace=TRUE)
+  y<-as.numeric(foreclosure=="yes")
+  z<-120000*sum(y)
+  return(z)
+}
+loss(1000)
+
 ```
 
 ## Problem 2B
@@ -83,7 +135,10 @@ Your bank gives out 1,000 loans this year. Create a sampling model and use the f
 Note that the loss you will incur is a random variable. Use Monte Carlo simulation to estimate the distribution of this random variable. Use summaries and visualization to describe your potential losses to your board of trustees.
 
 ```{r}
-##your code here
+for_rep<-replicate(10000,loss(1000))
+summary(for_rep)
+hist(for_rep)
+
 ```
 
 ## Problem 2C
@@ -92,7 +147,19 @@ The 1,000 loans you gave out were for $180,000. The way your bank can give out l
 
 Your solution here. 
 ```{r}
-###your code here
+rate<-(100+120000*0.02)/(180000*0.98)
+
+interest<-function(n){
+  foreclosure<-sample(default,n,replace=TRUE)
+  x<-as.numeric(foreclosure=="no")
+  y<-as.numeric(foreclosure=="yes")
+  z=180000*rate*sum(x)-120000*sum(y)
+  return(z)
+}
+interest_rep<-replicate(10000,interest(1000))
+mean(interest_rep)
+
+
 ```
 
 
@@ -101,7 +168,8 @@ Your solution here.
 In problem 2C, you were able to set a very low interest rate. Your customers will be very happy and you are expected to earn $100,000 in profits. However, that is just an expectation. Our profit is a random variable. If instead of a profit your bank loses money, your bank defaults. Under the conditions of Problem 2C, what is the probability that your profit is less than 0?
 
 ```{r}
-##your code here
+tab<-table(interest_rep<0)
+prop.table(tab)
 ```
 
 ## Problem 2E
@@ -113,7 +181,7 @@ Hint: Use the following short cut. If $p$ fraction of a box are $a$s and $(1-p)$
 Your solution here.
 
 ```{r}
-###your code here
+qnorm(1000,)
 ```
 
 ## Problem 2F
