@@ -28,19 +28,12 @@ Let's make a quick sampling model for this simple version of roulette. You are g
 ```{r}
 roullete<-rep(c("black","red","green"),times=c(18,18,2))
 get_outcome<-function(n){
-  spots<-sample(roullete,n,replace=TRUE)
-  N=1
-  for (i in 1:length(spots)){
-  if (spots[i]=="black"){
-   N=N+1
-  }
-  else {
-   N=N-1
-  }
-  }
-  return(N)
+  earning<-sample( ifelse( roullete=="black", 1,-1),  n, replace = TRUE)
+  sum(earning)
 }
-get_outcome(10)
+
+get_outcome(1000)
+
 ```
 
 ## Problem 1B
@@ -50,34 +43,39 @@ Use Monte Carlo simulation to study the distribution of total earnings $S_N$ for
 ```{r}
 n<-c(10,25,100,1000)
 winning<-function(n){
-  replicate(10000, get_outcome(n))
+  rep<-replicate(10000, get_outcome(n))
+  mean<-mean(rep,na.rm=T)
+  SD<-sd(rep,na.rm=T)
+  SE<-SD/sqrt(length(rep))
+  c(mean,SD,SE,hist(rep))
 } 
 s_n<-sapply(n,winning)
-S_N<-data.frame(s_n)
-hist(S_N$X1)
-hist(S_N$X2)
-hist(S_N$X3)
-hist(S_N$X4)
+s_n
 
-average <-function(n){
-  replicate(10000, get_outcome(n)/n)
+average<-function(n){
+  rep<-replicate(10000, get_outcome(n)/n)
+  mean<-mean(rep,na.rm=T)
+  SD<-sd(rep)
+  SE<-SD/sqrt(length(rep))
+  c(mean,SD,SE,hist(rep))
 } 
 s_nn<-sapply(n,average)
-S_NN<-data.frame(s_nn)
-hist(S_NN$X1)
-hist(S_NN$X2)
-hist(S_NN$X3)
-hist(S_NN$X4)
+s_nn
+
 ```
 
 Your answer here.
+1.With 10000 replications, earnings of n plays are normally distributed
+2. The absoulte expected values and standard errors incresase as N increase,indicating that expected loss on the roullete increase when we play more times.
+3.The expected values and standard errors of average winnings keep almost constant. Expected values are smaller than 0, indicating that we are more like to loss money rather than earning money.
 
 
 ## Problem 1C
 
 What is the expected value of our sampling model? What is the standard deviation of our sampling model?
 
-Your answer here.
+The expected value of earnning money whit 10 times play is -0.5914 with standard deviation of 3.1166
+
 
 ## Problem 1D
 
@@ -109,6 +107,7 @@ qplot(x=n,y=casinolossp,geom="point")
 ```
 
 Your answer here. 
+The probabilities that casino loses money decrease with the incresase of play times.
 
 # Problem 2 
 
@@ -159,7 +158,6 @@ interest<-function(n){
 interest_rep<-replicate(10000,interest(1000))
 mean(interest_rep)
 
-
 ```
 
 
@@ -181,7 +179,20 @@ Hint: Use the following short cut. If $p$ fraction of a box are $a$s and $(1-p)$
 Your solution here.
 
 ```{r}
-qnorm(1000,)
+p<-0.98
+Z<-qnorm(0.9995)
+rate2<-(Z+(1-p)*sqrt(p*(1-p)))*120000/((p*sqrt(p*(1-p))-Z)*180000)
+
+interest2<-function(n){
+  foreclosure<-sample(default,n,replace=TRUE)
+  x<-as.numeric(foreclosure=="no")
+  y<-as.numeric(foreclosure=="yes")
+  z=180000*0.02*sum(x)-120000*sum(y)
+  return(z)
+}
+interest_rep2<-replicate(10000,interest2(1000))
+tab2<-table(interest_rep2<0)
+prop.table(tab2)
 ```
 
 ## Problem 2F
