@@ -118,15 +118,8 @@ You run a bank that has a history of identifying potential homeowners that can b
 Your bank gives out 1,000 loans this year. Create a sampling model and use the function `sample` to simulate the number of foreclosure in a year with the information that 2% of customers default. Also suppose your bank loses $120,000 on each foreclosure. Run the simulation for one year and report your loss.
 
 ```{r}
-default<-rep(c("no","yes"),times=c(98,2))
-loss<-function(n){
-  foreclosure<-sample(default,n,replace=TRUE)
-  y<-as.numeric(foreclosure=="yes")
-  z<-120000*sum(y)
-  return(z)
-}
-loss(1000)
-
+default <- sample( c(-120000,0), 1000, replace = TRUE, prob=c(0.02, 0.98))
+lose <-sum(default)
 ```
 
 ## Problem 2B
@@ -134,7 +127,10 @@ loss(1000)
 Note that the loss you will incur is a random variable. Use Monte Carlo simulation to estimate the distribution of this random variable. Use summaries and visualization to describe your potential losses to your board of trustees.
 
 ```{r}
-for_rep<-replicate(10000,loss(1000))
+for_rep<-replicate(10000,{
+ default <- sample( c(-120000,0), 1000, replace = TRUE, prob=c(0.02, 0.98))
+ sum(default)
+})
 summary(for_rep)
 hist(for_rep)
 
@@ -148,16 +144,12 @@ Your solution here.
 ```{r}
 rate<-(100+120000*0.02)/(180000*0.98)
 
-interest<-function(n){
-  foreclosure<-sample(default,n,replace=TRUE)
-  x<-as.numeric(foreclosure=="no")
-  y<-as.numeric(foreclosure=="yes")
-  z=180000*rate*sum(x)-120000*sum(y)
-  return(z)
-}
-interest_rep<-replicate(10000,interest(1000))
+interest_rep<-replicate(10000,{
+ interest<-sample( c(-120000,180000*rate), 1000, replace = TRUE,
+                   prob=c(0.02, 0.98))
+ sum(interest)
+})
 mean(interest_rep)
-
 ```
 
 
